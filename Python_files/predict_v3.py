@@ -77,8 +77,12 @@ def main(data , model ):
   main = data_wrangle_json(sample)
   # sample = pd.read_csv('sord.csv')
   # main = data_wrangle(sample);
-  main.drop(main.iloc[np.where( main == '-' )[0] , 9].index, inplace=True)
+  main.drop(main.iloc[np.where( main == '-' )[0] , ].index, inplace=True)
   reshaped,start_time = create_segments_and_labels(main,64,32)
+  if(reshaped.shape[0] < 1):
+      print('Input  is not sufficient to make a prediction ')
+      return 0
+  
   #model = keras.models.load_model('/content/saved_model/my_model_2')
   
   predictions =  model.predict( reshaped )
@@ -164,4 +168,4 @@ main([{
     "latitude": 0,
     "longitude": 0  },
   "deviceStatus": "CONNECTED",
-  "actualActivity": "SITTING"}] )
+  "actualActivity": "SITTING"}] , 'model' )
