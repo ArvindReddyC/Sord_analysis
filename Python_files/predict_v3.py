@@ -4,9 +4,9 @@ import numpy as np
 import warnings
 warnings.filterwarnings("ignore")
 from tensorflow import keras
-from tensorflow import keras
 from scipy import stats
 from tqdm import tqdm
+
 
 '''
 Fucntion to split a string at ',' used in data_wrangle
@@ -78,6 +78,8 @@ def main(data , model ):
   # sample = pd.read_csv('sord.csv')
   # main = data_wrangle(sample);
   main.drop(main.iloc[np.where( main == '-' )[0] , ].index, inplace=True)
+  main.Angle = (180 -  main.Angle)
+  
   reshaped,start_time = create_segments_and_labels(main,64,32)
   if(reshaped.shape[0] < 1):
       print('Input  is not sufficient to make a prediction ')
@@ -93,13 +95,14 @@ def main(data , model ):
   predds = []
   for i in  preds_df.index:
     predds.append(np.argmax( preds_df.loc[i,] ))
+  
   arr = np.asarray( predds )
   indices = np.where( arr[:-1] != arr[1:])[0]
   indices = np.insert(indices, 0, -1, axis=0)
+  indices = np.insert(indices, len(indices), len(predds) - 2 , axis=0)
   listt = []
-  for i,j in enumerate( indices[:-1]):
-    print(i)
-    listt.append( { 'start_time' : start_time[ indices[i] + 1 ],  'end_time' : start_time[ indices[i+1] + 1 ] , 'activity' :  predds[ indices[i] + 1 ] } )
+  for i in range(0, len(indices) - 1  , 1 ):
+    listt.append( { 'start_time' : start_time[ indices[i] + 1 ],  'end_time' : start_time[ indices[(i+1)] + 1 ] , 'activity' :  predds[ indices[i] + 1 ] } )
   temp =  pd.DataFrame( listt )
   temp.activity = temp.activity.map( { 0 : 'Sitting' , 1 :'Standing' , 2 : 'Walking' } )
   final_json =  temp.to_dict( orient = 'records' )
@@ -169,3 +172,26 @@ main([{
     "longitude": 0  },
   "deviceStatus": "CONNECTED",
   "actualActivity": "SITTING"}] , 'model' )
+
+'''
+return Json in the below Format
+
+[{'activity': 'Sitting',
+  'end_time': '2022-02-25 01:59:40.601',
+  'start_time': '2022-02-25 01:44:00.001'},
+ {'activity': 'Walking',
+  'end_time': '2022-02-25 01:59:41.774',
+  'start_time': '2022-02-25 01:59:40.601'},
+ {'activity': 'Sitting',
+  'end_time': '2022-02-25 02:07:37.137',
+  'start_time': '2022-02-25 01:59:41.774'},
+ {'activity': 'Standing',
+  'end_time': '2022-02-25 02:21:14.144',
+  'start_time': '2022-02-25 02:07:37.137'},
+ {'activity': 'Sitting',
+  'end_time': '2022-02-25 02:32:15.061',
+  'start_time': '2022-02-25 02:21:14.144'},
+ {'activity': 'Walking',
+  'end_time': '2022-02-25 02:40:13.197',
+  'start_time': '2022-02-25 02:32:15.061'}]
+'''
